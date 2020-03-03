@@ -17,10 +17,18 @@ import java.lang.ref.WeakReference;
 public class EndpointsAsyncTask extends AsyncTask<Void, Void, String> {
     private WeakReference<Activity> mActivity;
     private static MyApi myApiService = null;
+    private EndpointsAsyncTaskListener mListener = null;
+    private Exception mError = null;
 
     public EndpointsAsyncTask(Activity activity) {
         mActivity = new WeakReference<>(activity);
     }
+
+    public EndpointsAsyncTask setListener(EndpointsAsyncTaskListener listener) {
+        mListener = listener;
+        return this;
+    }
+
 
     @Override
     protected String doInBackground(Void...voids) {
@@ -46,6 +54,7 @@ public class EndpointsAsyncTask extends AsyncTask<Void, Void, String> {
         try {
             return myApiService.tellJoke().execute().getJoke();
         } catch (IOException e) {
+            mError = e;
             return e.getMessage();
         }
     }
@@ -60,5 +69,21 @@ public class EndpointsAsyncTask extends AsyncTask<Void, Void, String> {
             activity.startActivity(intent);
         }
 
+        if(mListener != null) {
+            mListener.onComplete(result, mError);
+        }
+
+    }
+
+    @Override
+    protected void onCancelled() {
+        if(mListener != null) {
+            mError = new InterruptedException("AsyncTask Cancelled");
+            mListener.onComplete(null, mError);
+        }
+    }
+
+    public static interface EndpointsAsyncTaskListener {
+        public void onComplete(String result, Exception exception);
     }
 }

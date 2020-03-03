@@ -7,7 +7,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import java.util.concurrent.CountDownLatch;
+
 public class MainActivity extends AppCompatActivity {
+    private Exception mError = null;
+    private CountDownLatch signal = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
